@@ -1,10 +1,41 @@
 package Mac::Finder::DSStore;
 
+=head1 NAME
+
+Mac::Finder::DSStore - Read and write Macintosh Finder DS_Store files
+
+=head1 DESCRIPTION
+
+C<Mac::Finder::DSStore> provides a handful of functions for reading and
+writing the desktop database files created by the Macintosh Finder.
+
+=head1 FUNCTIONS
+
+Many functions take a C<$store> argument which is the opened file as
+an instance of L<Mac::Finder::DSStore::BuddyAllocator>, or a C<$block>
+argument which is a specific block of the file as an instance of
+L<Mac::Finder::DSStore::BuddyAllocator::Block>.
+
+=cut
+
 use strict;
 use POSIX qw(ceil);
+use Carp qw(croak);
+use Fcntl;
+use Exporter qw(import);
 
-our($VERSION) = '0.90';
+our($VERSION) = '0.91';
 our($testpoint);
+our(@EXPORT_OK) = qw( getDSDBEntries putDSDBEntries writeDSDBEntries makeEntries );
+
+=head2 @records = &Mac::Finder::DSStore::getDSDBEntries($store[, $callback])
+
+Retrieves the "superblock" pointed to by the C<DSDB> entry in the store's table
+of contents, and traverses the B-tree it points to, returning a list of
+the records in the tree. Alternately, you can supply a callback which will
+be invoked for each record, and C<getDSDBEntries> will return an empty list.
+
+=cut
 
 sub getDSDBEntries {
     my($file, $callback) = @_;
@@ -23,12 +54,25 @@ sub getDSDBEntries {
     @retval;
 }
 
+=head2 &Mac::Finder::DSStore::putDSDBEntries($store, $arrayref)
+
+C<$arrayref> must contain a correctly ordered list of
+C<Mac::Finder::DSStore::Entry> objects. They will be evenly
+organized into a B-tree structure and written to the C<$store>. If there is
+an existing tree of records in the file already, it will be deallocated.
+
+This function does not flush the allocator's information back to the file.
+
+=cut
+
+
 sub putDSDBEntries {
     my($file, $recs) = @_;
     
     my($tocblock, $pagesize);
     my($pagecount, $reccount, $height);
 
+    # Delete the old btree (but keep its superblock), or allocate a superblock.
     if(defined($file->{toc}->{DSDB})) {
 	$tocblock = $file->{toc}->{DSDB};
 	my($old_rootblock);
@@ -91,8 +135,6 @@ sub putDSDBEntries {
 			$pagecount,
 			$pagesize);
     $masterblock->close;
-
-    $file->listBlocks(1);
 
     1;
 }
@@ -226,7 +268,96 @@ sub writeBTreeNode {
     }
 }
 
+=head2 &Mac::Finder::DSStore::writeDSDBEntries($file, @entries)
+
+A convenience function which sorts a list of entries and writes them
+to the specified file using C<putDSDBEntries>, then flushes the allocator's
+data structures to disk. 
+C<$file> may be a filename or an open file handle.
+The store object is returned, but you don't need to do anything else with it.
+
+=cut
+
+sub writeDSDBEntries {
+    my($store, $recs);
+    {
+        my($file, @entries) = @_;
+
+        require IO::File;
+        require Mac::Finder::DSStore::BuddyAllocator;
+        
+        unless(ref $file) {
+            my($filename) = $file;
+            $file = IO::File->new( $filename, Fcntl::O_RDWR | Fcntl::O_CREAT );
+            croak "$filename: $!, died" unless $file;
+        }
+
+        if((stat($file))[7] > 32) {
+            $store = Mac::Finder::DSStore::BuddyAllocator->open($file);
+        } else {
+            $store = Mac::Finder::DSStore::BuddyAllocator->new($file);
+        }
+
+        $recs = [ sort { $a->cmp($b) } @entries ];
+    }
+
+    putDSDBEntries($store, $recs);
+    $store->writeMetaData;
+
+    $store;
+}
+
+=head2 &Mac::Finder::DSStore::makeEntries($filename, [ what => value ... ])
+
+C<makeEntries> encapsulates some information about the format of individual
+records in the DS_Store file. It returns a list of records constructed with the
+given filename and with the information specified in the rest of its args.
+Most args come in pairs, a name and a value, so C<makeEntries> kind of looks
+like it takes a hash. Some names take no value and some could take several.
+Some produce more than one record as a result.
+
+See the output of the F<examples/dsstore_dump.pl> script for an example of how
+to use this, and check the source code for a list of the formats it accepts.
+
+This function might change in the future.
+
+=cut
+
+sub makeEntries {
+    my($filename, @info) = @_;
+    my(@results);
+    
+    while(@info) {
+        my($recordType) = shift @info;
+        
+        if ($recordType =~ /^....$/) {
+            my($record) = Mac::Finder::DSStore::Entry->new($filename, $recordType);
+            $record->value( shift @info );
+            push(@results, $record);
+        } elsif ($recordType =~ /^(....)_hex$/) {
+            my($record) = Mac::Finder::DSStore::Entry->new($filename, $1);
+            $record->value( pack('H*', shift @info) );
+            push(@results, $record);            
+        } else {
+            my($mkr) = $Mac::Finder::DSStore::Entry::{'make_'.$recordType};
+            croak "Don't know how to handle '$recordType'" unless $mkr;
+            push(@results, &{$mkr}($filename, $recordType, \@info));
+        }
+    }
+    
+    @results;    
+}
+
 package Mac::Finder::DSStore::Entry;
+
+=head1 Mac::Finder::DSStore::Entry
+
+This class holds the individual records from the database. Each record
+contains a filename (in some cases, "." to refer to the containing
+directory), a 4-character record type, and a value. The value is
+one of a few concrete types, according to the record type.
+
+=cut
 
 use Encode ();
 use Carp qw(croak);
@@ -256,6 +387,31 @@ our(%types) = (
                'pict' => 'blob',
                );
 
+=head2 $entry = ...::Entry->new($filename, $typecode)
+
+Creates a new entry with no value. The concrete type is inferred from the
+record type code.
+
+=head2 $entry->filename
+
+Gets the filename of an entry.
+
+=head2 $entry->strucId
+
+Gets the record type of this entry, as a four-character string, indicating
+what aspect of the file the entry describes.
+
+=head2 $entry->value([$value])
+
+Gets or sets the value of an entry.
+
+If the concrete type is C<blob>, the value is interpreted as a byte string; 
+if it is C<ustr>, as a character string.
+If the concrete type is C<long>, C<shor>, or C<bool>, then the value should
+be an integer.
+
+=cut
+
 sub new {
     my($class, $filename, $strucId, @opts) = @_;
     
@@ -265,9 +421,19 @@ sub new {
           ref $class || $class);
 }
 
-sub set {
+sub filename {
+    $_[0]->[0];
+}
+
+sub strucId {
+    $_[0]->[1];
+}
+
+sub value {
     my($self, $value) = @_;
-    
+ 
+    return $self->[3] unless defined $value;
+   
     croak "Can't set a value on an entry with no concrete type"
         unless defined($self->[2]);
     
@@ -280,7 +446,7 @@ sub set {
         die "Unknown concrete type $t, died";
     }
 
-    1;
+    $self->[3];
 }
 
 sub readEntry {
@@ -369,6 +535,13 @@ sub write {
     }
 }
 
+=head2 $entry->cmp($other)
+
+Returns -1, 0, or 1 depending on the relative ordering of the two entries,
+according to (a guess at) the record ordering used by the store's B-tree.
+
+=cut
+
 sub cmp {
     my($self, $other) = @_;
 
@@ -385,5 +558,129 @@ sub cmp {
         ||
     ( $self->[1] cmp $other->[1] );
 }
+
+#
+#  The make_foo subs are used by Mac::Finder::DSStore::makeEntries.
+#
+
+sub make_BKGD_default {
+    my($filename, undef, undef) = @_;
+
+    my($rec) = Mac::Finder::DSStore::Entry->new($filename, 'BKGD');
+    $rec->value( pack('A4 x8', 'DefB') );
+    $rec;
+}
+
+sub make_BKGD_color {
+    my($filename, $strucId, $argv) = @_;
+    my($color) = shift @$argv;
+    my($rgb);
+
+    if ($color =~ /^\#([0-9a-f]+)$/i) {
+        if(length($1) == 3) {
+            ( $rgb = $1 ) =~ s/(.)(.)(.)/$1$1$1$1$2$2$2$2$3$3$3$3/;
+        } elsif (length($1) == 6) {
+            ( $rgb = $1 ) =~ s/(..)(..)(..)/$1$1$2$2$3$3/;
+        } elsif (length($1) == 12) {
+            $rgb = $1;
+        }
+    }
+
+    croak "Can't parse color string '$color'"
+        unless $rgb;
+
+    my($rec) = Mac::Finder::DSStore::Entry->new($filename, 'BKGD');
+    $rec->value( pack('A4 H12 x2', 'ClrB', $rgb) );
+
+    $rec;
+}
+
+sub make_BKGD_alias {
+    my($filename, $strucId, $argv) = @_;
+
+    my($image) = shift @$argv;
+
+    require Mac::Memory;
+
+    if(!ref $image) {
+        require Mac::Files;
+        $image = Mac::Files::NewAlias($image);
+    }
+
+    my($isize) = $image->size;
+    my($bkgd, $pict);
+
+    $bkgd = Mac::Finder::DSStore::Entry->new($filename, 'BKGD');
+    $bkgd->value( pack('A4 N nn', 'PctB', $isize, 0, 0) );
+
+    $pict = Mac::Finder::DSStore::Entry->new($filename, 'pict');
+    $pict->value( $image->get );
+
+    ( $bkgd, $pict );
+}
+
+sub _make_packed {
+    my($filename, $strucId, $fmt, @values) = @_;
+    my($record) = Mac::Finder::DSStore::Entry->new($filename, $strucId);
+    $record->value( pack($fmt, @values) );
+    $record;
+}
+
+sub _make_packed_arrayref {
+    my($filename, $strucId, $argv, $format, $reqcount, $dflt) = @_;
+    my($values) = shift @$argv;
+
+    croak "$strucId argument must be an array ref"
+        unless ref $values;
+
+    croak "$strucId argument must have at least $reqcount items"
+        unless $reqcount <= @$values;
+
+    my($max) = $reqcount + @$dflt;
+
+    croak "$strucId argument can't have more than $max items"
+        if $max < @$values;
+
+    my(@fields) = @$values;
+    if ($max > @fields) {
+        push(@fields, @{$dflt}[ ( @fields - $max ) .. -1 ]);
+    }
+
+    return &_make_packed($filename, substr($strucId, 0, 4),
+                         $format, @fields);
+}
+
+sub make_Iloc_xy {
+    my($filename, $strucId, $argv) = @_;
+    return &_make_packed_arrayref($filename, $strucId, $argv,
+                                  'NN nnnn', 2, [65535, 65535, 65535, 0]);
+}
+
+sub make_fwi0_flds {
+    my($filename, $strucId, $argv) = @_;
+    my($flds) = shift @$argv;
+    
+    croak "$strucId argument must have 7 values"
+        unless 7 == @$flds;
+
+    return &_make_packed($filename, 'fwi0', 'n4 A4 n*', @$flds);
+}
+    
+
+=head1 SEE ALSO
+
+See L<Mac::Finder::DSStore::Format> for more detailed information on
+the record types found in a DS_Store file.
+
+See L<Mac::Finder::DSStore::BuddyAllocator> for the low-level organization
+of the DS_Store file.
+
+=head1 AUTHOR
+
+Copyright 2008 by Wim Lewis E<lt>wiml@hhhh.orgE<gt>.
+
+Some information is from Mark Mentovai via the Mozilla project.
+
+=cut
 
 1;

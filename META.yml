@@ -1,20 +1,22 @@
 ---
 name: Mac-Finder-DSStore
-version: 0.90
+version: 0.91
 author:
   - 'Wim Lewis <wiml@hhhh.org>'
-abstract: Manipulates the Macintosh Finder's .DS_Store files.
+abstract: "Manipulates the Macintosh Finder's .DS_Store files."
 license: perl
-resources:
-  license: http://dev.perl.org/licenses/
 dynamic_config: 0
+generated_by: Module::Build version 0.3
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.2.html
+  version: 1.2
 provides:
   Mac::Finder::DSStore:
     file: DSStore.pm
-    version: 0.90
+    version: 0.91
   Mac::Finder::DSStore::BuddyAllocator:
     file: BuddyAllocator.pm
-    version: 0.90
+    version: 0.91
   Mac::Finder::DSStore::BuddyAllocator::Block:
     file: BuddyAllocator.pm
   Mac::Finder::DSStore::BuddyAllocator::StringBlock:
@@ -23,7 +25,5 @@ provides:
     file: BuddyAllocator.pm
   Mac::Finder::DSStore::Entry:
     file: DSStore.pm
-generated_by: Module::Build version 0.2805
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
+resources:
+  license: http://dev.perl.org/licenses/
