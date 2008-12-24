@@ -22,10 +22,11 @@ C<writeMetaData> must be called for the changes to be reflected in the file.
 
 =cut
 
-use Carp;
 use strict;
+use warnings;
+use Carp;
 
-our($VERSION) = '0.91';
+our($VERSION) = '0.92';
 
 # Debug logging. Uncomment these and all uses of them to activate.
 # It might be nice to make this more easily switchable.
@@ -350,8 +351,16 @@ sub blockByNumber {
     }
 }
 
+=head2 ( $offset, $size ) = $allocator->blockOffset(blockid)
+
+Retrieves the file offset and size in bytes of a given block.
+The offset doesn't include the 4-byte fudge.
+In scalar context, just returns the offset.
+
+=cut
+
 sub blockOffset {
-    my($self, $id, $write) = @_;
+    my($self, $id) = @_;
     my($addr) = $self->{offsets}->[$id];
     croak "Block $id is not allocated" unless $addr;
     my($offset) = $addr & ~0x1F;
@@ -573,8 +582,9 @@ might change.
 
 =cut
 
-use Carp;
 use strict;
+use warnings;
+use Carp;
 
 #
 # Block objects are created by the buddy allocator; they're a
@@ -638,8 +648,9 @@ sub copyback {
 
 package Mac::Finder::DSStore::BuddyAllocator::WriteBlock;
 
-use Carp;
 use strict;
+use warnings;
+use Carp;
 
 #
 # Write blocks
@@ -725,6 +736,9 @@ sub copyback {
 }
 
 package Mac::Finder::DSStore::BuddyAllocator::StringBlock;
+
+use strict;
+use warnings;
 
 #
 # This one's kind of handy, really, but is only used for debugging and
