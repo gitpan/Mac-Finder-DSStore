@@ -71,6 +71,10 @@ A boolean value, stored as one byte.
 An arbitrary block of bytes, stored as an integer followed by that
 many bytes of data.
 
+=item C<'type'>
+
+Four bytes, containing a FourCharCode.
+
 =item C<'ustr'>
 
 A Unicode text string, stored as an integer character count followed 
@@ -162,6 +166,9 @@ is icon view, other values are C<clmv> and C<Nlsv>.
 The next four bytes are unknown, and are either zeroes or
 C<00 01 00 00>.
 
+On Leopard (10.5), the view-type information seems to be ignored,
+but see C<vstl>.
+
 =item C<'fwsw'>
 
 C<long>, directories only. Finder window sidebar width, in
@@ -241,6 +248,14 @@ Variable-length C<blob>, directories only.
 Despite the name, this contains not a PICT image but an Alias record
 (see I<Inside Macintosh: Files>) which resolves to the file containing
 the actual background image. See also C<'BKGD'>.
+
+=item C<'vstl'>
+
+C<type>, directories only. Indicates the style of the view
+(one of C<icnv>, C<clmv>, C<Nlsv>, or C<Flwv>)
+selected by the Finder's "Always open in icon [or other style] view"
+checkbox.
+This appears to be a new addition to the Leopard (10.5) Finder.
 
 =back
 
@@ -427,4 +442,4 @@ describing record types has been copied from that wiki page.
 Further investigation and documentation by Wim Lewis
 E<lt>wiml@hhhh.orgE<gt>.
 
-
+Also thanks to Yvan BARTHE<Eacute>LEMY for investigation and bugfixes.
