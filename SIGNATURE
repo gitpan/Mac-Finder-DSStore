@@ -1,0 +1,43 @@
+This file contains message digests of all files listed in MANIFEST,
+signed via the Module::Signature module, version 0.64.
+
+To verify the content in this distribution, first make sure you have
+Module::Signature installed, then type:
+
+    % cpansign -v
+
+It will check each file's integrity, as well as the signature's
+validity.  If "==> Signature verified OK! <==" is not displayed,
+the distribution may already have been compromised, and you should
+not run its Makefile.PL or Build.PL.
+
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+SHA1 0b6bc32e6bcb250e267da9dc85d556de3869b23c BuddyAllocator.pm
+SHA1 870e42db38674267e2cabb67b3e660ea56d95d5d Build.PL
+SHA1 8bdbf56c00f7e244af31abcdbfbb4c601bdf1ad3 DSStore.pm
+SHA1 6d25c720df6868eff2e9704ff3448e03535a34f1 DSStoreFormat.pod
+SHA1 bba01606b4b126d8c432ce94a855235991b858df MANIFEST
+SHA1 3e2f4de53d3c0b571391d80b36483796adc72c08 META.yml
+SHA1 5f3859ccf84f8df05140234c3df27a062c0f8d65 README
+SHA1 567cdadd952e82046475f96bd6604e890ec3835a examples/circle.pl
+SHA1 d1c0201fcc71ec73ef892a71cb533564acf5edc1 examples/dsstore_dump.pl
+SHA1 5c3bd3b507bc657ebae487b7478a772de5f59c7b examples/dumprecs.pl
+SHA1 65aebdae39ca9fc4a51e7469fa3c40e7ba4e9494 t/alloc_incore.t
+SHA1 92908ab2fe46df05318d1aa5fa3276c13b3563ff t/alloc_ondisk.t
+SHA1 dbd4f88f3bdef5758ec72028d5a52eea70417da0 t/alloc_r.t
+SHA1 11bbff500bd61c516407332291b39f26d3635cc9 t/btree.t
+SHA1 e9c6a5881fc60173fbc8d479c1afd2ce3b43bef1 t/pod.t
+SHA1 db3d350d9f6b81167a4989a8dc7e47d3f7a8c747 t/recs_make.t
+SHA1 a9e9b96be92336cdadde38fabaae518a28a28a67 t/recs_rw.t
+SHA1 e82659b3a9ffc4c10c299b4d7cbd20c7926586eb t/store1
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.10 (Darwin)
+
+iQCVAwUBTHSjjl8UnN8n93LBAQJSkQP/TW5i3+7ps2n0er+H3k6vqnZHX7k8q85j
+JcTOa92peTS/zrOry7uN1iIz5UFuaD19zRrzOaVoQd/H3sXoCvY+w6nllidVC4bf
+9NV1ctTyPQUyHNhl11GF4P3k64gdwakrXfrUiVpSd+RBmgICEVZEfmt6Jyq3u/0E
+3Z/uteLa1sE=
+=+MVY
+-----END PGP SIGNATURE-----
