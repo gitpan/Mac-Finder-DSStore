@@ -1,5 +1,5 @@
 This file contains message digests of all files listed in MANIFEST,
-signed via the Module::Signature module, version 0.64.
+signed via the Module::Signature module, version 0.68.
 
 To verify the content in this distribution, first make sure you have
 Module::Signature installed, then type:
@@ -14,13 +14,13 @@ not run its Makefile.PL or Build.PL.
 -----BEGIN PGP SIGNED MESSAGE-----
 Hash: SHA1
 
-SHA1 0b6bc32e6bcb250e267da9dc85d556de3869b23c BuddyAllocator.pm
+SHA1 e3c3f641a06636967f92d1a825b81f657554eee3 BuddyAllocator.pm
 SHA1 870e42db38674267e2cabb67b3e660ea56d95d5d Build.PL
-SHA1 8bdbf56c00f7e244af31abcdbfbb4c601bdf1ad3 DSStore.pm
+SHA1 2acd8d4bdf13b25ccf2e3f75834cdf7578904b02 DSStore.pm
 SHA1 6d25c720df6868eff2e9704ff3448e03535a34f1 DSStoreFormat.pod
 SHA1 bba01606b4b126d8c432ce94a855235991b858df MANIFEST
-SHA1 3e2f4de53d3c0b571391d80b36483796adc72c08 META.yml
-SHA1 5f3859ccf84f8df05140234c3df27a062c0f8d65 README
+SHA1 eff034007f5728dd12cbfd5a3084680499787d57 META.yml
+SHA1 21f7eab009ca95919dcfe3ff9fe518ed81d67ad4 README
 SHA1 567cdadd952e82046475f96bd6604e890ec3835a examples/circle.pl
 SHA1 d1c0201fcc71ec73ef892a71cb533564acf5edc1 examples/dsstore_dump.pl
 SHA1 5c3bd3b507bc657ebae487b7478a772de5f59c7b examples/dumprecs.pl
@@ -33,11 +33,11 @@ SHA1 db3d350d9f6b81167a4989a8dc7e47d3f7a8c747 t/recs_make.t
 SHA1 a9e9b96be92336cdadde38fabaae518a28a28a67 t/recs_rw.t
 SHA1 e82659b3a9ffc4c10c299b4d7cbd20c7926586eb t/store1
 -----BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.10 (Darwin)
+Version: GnuPG v1.4.11 (Darwin)
 
-iQCVAwUBTHSjjl8UnN8n93LBAQJSkQP/TW5i3+7ps2n0er+H3k6vqnZHX7k8q85j
-JcTOa92peTS/zrOry7uN1iIz5UFuaD19zRrzOaVoQd/H3sXoCvY+w6nllidVC4bf
-9NV1ctTyPQUyHNhl11GF4P3k64gdwakrXfrUiVpSd+RBmgICEVZEfmt6Jyq3u/0E
-3Z/uteLa1sE=
-=+MVY
+iQCVAwUBT6IvJ18UnN8n93LBAQJvdgQAwADnloZDA9iEsWWBCSFrDXFxZywKPkw0
+zIBhcqtjqr5qjxUPJKxu9jgH0HKIGQ2JN0kjebm2nDfyjE/gaqzO7XRYMoNzgEOv
+0hZ9cOKcyjgLhYRp7NqI8mWEPPSP+OixGK5yFiVFZ5BTcO/LYO/VkIJNi5ZUGhY6
+CpGvBsSnlRk=
+=a7BA
 -----END PGP SIGNATURE-----

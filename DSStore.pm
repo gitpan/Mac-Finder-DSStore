@@ -25,7 +25,7 @@ use Carp qw(croak);
 use Fcntl;
 require Exporter;
 
-our($VERSION) = '0.95';
+our($VERSION) = '0.96';
 our(@ISA) = qw(Exporter);
 our(@EXPORT_OK) = qw( getDSDBEntries putDSDBEntries writeDSDBEntries makeEntries );
 
@@ -96,17 +96,23 @@ sub putDSDBEntries {
     $height = 0;
 
     my(@children);
-
+    
+    # Partition the records into btree nodes, from the bottom of
+    # the tree working towards the root.
     do {
 	my(@sizes);
 
 	if (@children) {
+            # Interior node: child pointers interleaved with records
 	    @sizes = map { 4 + $_->byteSize } @$recs;
 	} else {
+            # Leaf node: just a bunch of records
 	    @sizes = map { $_->byteSize } @$recs;
 	}
 
-	my(@interleaf) = &partition_sizes($pagesize - 4, @sizes);
+        # In addition to @sizes, each page contains a record
+        # count and a flag/childnode field (4 bytes each)
+	my(@interleaf) = &partition_sizes($pagesize - 8, @sizes);
 	my(@nchildren);
 
 	my($next) = 0;
@@ -146,6 +152,9 @@ sub putDSDBEntries {
     1;
 }
 
+# Given a list of sizes, break them into groups so that
+# each group sums to no more than $max, not including the items
+# that separate them (returned in @ejecta).
 sub partition_sizes {
     my($max, @sizes) = @_;
     my($sum) = 0;
@@ -619,9 +628,8 @@ sub make_BKGD_alias {
 
     my($image) = shift @$argv;
 
-    require Mac::Memory;
-
     if(!ref $image) {
+        require Mac::Memory;
         require Mac::Files;
         $image = Mac::Files::NewAlias($image);
     }
@@ -699,6 +707,7 @@ of the DS_Store file.
 Copyright 2008 by Wim Lewis E<lt>wiml@hhhh.orgE<gt>.
 
 Some information is from Mark Mentovai via the Mozilla project.
+Thanks also to Martin Baker for bug reports.
 
 =cut
 
