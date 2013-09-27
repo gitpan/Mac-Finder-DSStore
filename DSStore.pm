@@ -25,7 +25,7 @@ use Carp qw(croak);
 use Fcntl;
 require Exporter;
 
-our($VERSION) = '0.96';
+our($VERSION) = '0.97';
 our(@ISA) = qw(Exporter);
 our(@EXPORT_OK) = qw( getDSDBEntries putDSDBEntries writeDSDBEntries makeEntries );
 
@@ -385,24 +385,37 @@ use Carp qw(croak);
 #
 our(%types) = (
                'BKGD' => 'blob',
+               'bwsp' => 'blob',
                'cmmt' => 'ustr',
                'dilc' => 'blob',
                'dscl' => 'bool',
+               'extn' => 'ustr',
                'fwi0' => 'blob',
                'fwsw' => 'long',
                'fwvh' => 'shor',
+               'GRP0' => 'ustr',
                'icgo' => 'blob',
                'icsp' => 'blob',
                'icvo' => 'blob',
                'ICVO' => 'bool',
+               'icvp' => 'blob',
                'icvt' => 'shor',
                'Iloc' => 'blob',
                'info' => 'blob',
+               'lg1S' => 'comp',
+               'logS' => 'comp',
                'lssp' => 'blob',
                'lsvo' => 'blob',
                'LSVO' => 'bool',
+               'lsvP' => 'blob',
+               'lsvp' => 'blob',
                'lsvt' => 'shor',
+               'moDD' => 'dutc',
+               'modD' => 'dutc',
+               'ph1S' => 'comp',
+               'phyS' => 'comp',
                'pict' => 'blob',
+               'vSrn' => 'long',
                'vstl' => 'type',
                );
 
@@ -426,8 +439,8 @@ Gets or sets the value of an entry.
 
 If the concrete type is C<blob> or C<type>, the value is interpreted as a byte string; 
 if it is C<ustr>, as a character string.
-If the concrete type is C<long>, C<shor>, or C<bool>, then the value should
-be an integer.
+If the concrete type is C<long>, C<shor>, C<comp>, C<dutc>, or C<bool>,
+then the value should be an integer.
 
 =cut
 
@@ -494,6 +507,8 @@ sub readEntry {
 	$value = Encode::decode('UTF-16BE', $block->read(2 * $strlen));
     } elsif ($strucType eq 'type') {
         $value = $block->read(4);
+    } elsif ($strucType eq 'comp' || $strucType eq 'dutc') {
+        $value = $block->read(8, 'Q>');
     } else {
 	die "Unknown struc type '$strucType', died";
     }
@@ -529,6 +544,8 @@ sub byteSize {
 	$size += 4 + length($value);
     } elsif ($strucType eq 'ustr') {
 	$size += 4 + 2 * length($value);
+    } elsif ($strucType eq 'comp' or $strucType eq 'dutc') {
+        $size += 8;
     } else {
 	die "Unknown struc type '$strucType', died";
     }
@@ -558,6 +575,8 @@ sub write {
 	$into->write(Encode::encode('UTF-16BE', $self->[3]));
     } elsif ($strucType eq 'type') {
         $into->write('a4', $self->[3]);
+    } elsif ($strucType eq 'comp' or $strucType eq 'dutc') {
+        $into->write('Q>', $self->[3]);
     } else {
 	die "Unknown struc type '$strucType', died";
     }

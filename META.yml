@@ -1,38 +1,45 @@
 ---
-name: Mac-Finder-DSStore
-version: 0.96
+abstract: "Manipulates the Macintosh Finder's .DS_Store files."
 author:
   - 'Wim Lewis <wiml@hhhh.org>'
-abstract: Manipulates the Macintosh Finder's .DS_Store files.
-license: perl
-resources:
-  license: http://dev.perl.org/licenses/
-requires:
-  Encode: 1.20
-  perl: 5.6.1
 build_requires:
   Test::More: 0.61
   Test::NoWarnings: 0
-recommends:
-  Mac::Files: 0
-  Mac::Memory: 0
+configure_requires:
+  Module::Build: 0.40
 dynamic_config: 0
+generated_by: 'Module::Build version 0.4005, CPAN::Meta::Converter version 2.120921'
+license: perl
+meta-spec:
+  url: http://module-build.sourceforge.net/META-spec-v1.4.html
+  version: 1.4
+name: Mac-Finder-DSStore
 provides:
   Mac::Finder::DSStore:
     file: DSStore.pm
-    version: 0.96
+    version: 0.97
   Mac::Finder::DSStore::BuddyAllocator:
     file: BuddyAllocator.pm
     version: 0.96
   Mac::Finder::DSStore::BuddyAllocator::Block:
     file: BuddyAllocator.pm
+    version: 0
   Mac::Finder::DSStore::BuddyAllocator::StringBlock:
     file: BuddyAllocator.pm
+    version: 0
   Mac::Finder::DSStore::BuddyAllocator::WriteBlock:
     file: BuddyAllocator.pm
+    version: 0
   Mac::Finder::DSStore::Entry:
     file: DSStore.pm
-generated_by: Module::Build version 0.280801
-meta-spec:
-  url: http://module-build.sourceforge.net/META-spec-v1.2.html
-  version: 1.2
+    version: 0
+recommends:
+  Mac::Files: 0
+  Mac::Memory: 0
+  Mac::PropertyList: 1.38
+requires:
+  Encode: 1.20
+  perl: v5.6.1
+resources:
+  license: http://dev.perl.org/licenses/
+version: 0.97

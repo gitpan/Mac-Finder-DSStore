@@ -80,6 +80,17 @@ Four bytes, containing a FourCharCode.
 A Unicode text string, stored as an integer character count followed 
 by 2*count bytes of data in UTF-16.
 
+=item C<'comp'>
+
+An eight-byte (64-bit) integer.
+(I don't know why the abbreviation "comp" was chosen for this.)
+
+=item C<'dutc'>
+
+A datestamp, represented as an 8-byte integer count of the number
+of (1/65536)-second intervals since the Mac epoch in 1904. Given
+the name, this probably corresponds to the C<UTCDateTime> structure.
+
 =back
 
 =back
@@ -147,9 +158,17 @@ and layout of the window (including whether optional parts like
 the sidebar or path bar are visible).
 This appeared in Snow Leopard (10.6).
 
+The plist contains the keys C<WindowBounds> (a string in the same
+format in which AppKit saves window frames); C<SidebarWidth> (a
+float), and booleans C<ShowSidebar>, C<ShowToolbar>, C<ShowStatusBar>,
+and C<ShowPathbar>.  Sometimes contains C<ViewStyle> (a string),
+C<TargetURL> (a string), and C<TargetPath> (an array of strings).
+
 =item C<'cmmt'>
 
 C<ustr>, containing a file's "Spotlight Comments".
+(The comment is also stored in the C<com.apple.metadata:kMDItemFinderComment>
+xattr; this copy may be historical.)
 
 =item C<'dilc'>
 
@@ -161,6 +180,12 @@ when files are displayed on the desktop.
 
 C<bool>, attached to subdirectories. Indicates that the
 subdirectory is open (disclosed) in list view.
+
+=item C<'extn'>
+
+C<ustr>. Often contains the file extension of the file, but sometimes
+contains a different extension.
+Purpose unknown.
 
 =item C<'fwi0'>
 
@@ -175,8 +200,8 @@ C<00 01 00 00>.
 
 On Leopard (10.5), the view-type information seems to be ignored,
 but see C<vstl>. On Snow Leopard (10.6), some more of this record's
-function seems to have been taken over by the plist records C<bwsp>
-and C<lsvp>.
+function seems to have been taken over by the plist records C<bwsp>,
+C<lsvp>, and and C<lsvP>.
 
 =item C<'fwsw'>
 
@@ -191,6 +216,10 @@ defined by the rect in fwi0. The Finder seems to create these (at
 least on 10.4) even though it will do the right thing for window
 height with only an fwi0 around, perhaps this is because the stored
 height is weird when accounting for toolbars and status bars. 
+
+=item C<'GRP0'>
+
+C<ustr>. Unknown; I've only seen this once.
 
 =item C<'icgo'>
 
@@ -225,6 +254,20 @@ item info" is checked, and the low-order bit of the 12th (last) byte
 is 1 if the "Show icon preview" checkbox is checked. The tenth byte
 usually has the value 4, and the remainder are zero.
 
+=item C<'icvp'>
+
+A C<blob> containing a plist, giving settings for the icon view.
+Appeared in Snow Leopard (10.6), probably supplanting C<'icvo'>.
+
+The plist holds a dictionary with several key-value pairs:
+booleans C<showIconPreview>, C<showItemInfo>, and C<labelOnBottom>;
+numbers C<scrollPositionX>, C<scrollPositionY>, C<gridOffsetX>, C<gridOffsetY>,
+C<textSize>, C<iconSize>, C<gridSpacing>, and C<viewOptionsVersion>;
+string C<arrangeBy>.
+
+The value of the C<backgroundType> key (an integer) presumably controls
+the presence of further optional keys such as C<backgroundColorRed>/C<backgroundColorGreen>/C<backgroundColorBlue>.
+
 =item C<'icvt'>
 
 C<shor>, directories only.
@@ -233,7 +276,15 @@ Icon view text label (filename) size, in points.
 =item C<'info'>
 
 40- or 48-byte C<blob>, attached to directories and files.
-Unknown.
+Unknown. The first 8 bytes look like a timestamp as in C<dutc>.
+
+=item C<'logS'> or C<'lg1S'>
+
+C<comp>, directories only. Appears to contain the logical size in
+bytes of the directory's contents, perhaps as a cache to speed up
+display in the Finder.
+I think that C<'logS'> appeared in 10.7 and was
+supplanted by C<'lg1S'> in 10.8. See also C<'ph1S'>.
 
 =item C<'lssp'>
 
@@ -244,7 +295,11 @@ Unknown. Possibly the scroll position in list view mode?
 
 76-byte C<blob>, directories only.
 List view options. Seems to contain the columns displayed in list
-view, their widths, and their sort ordering if any.
+view, their widths, and their sort ordering if any. Presumably
+supplanted by C<lsvp> and/or C<lsvP>.
+
+These list view settings are shared between list view and the list
+portion of coverflow view.
 
 =item C<'lsvt'>
 
@@ -255,8 +310,37 @@ List view text (filename) size, in points.
 
 A C<blob> containing a binary plist. List view settings, perhaps
 supplanting the C<'lsvo'> record. Appeared in Snow Leopard (10.6).
-These list view settings are shared between list view and the list
-portion of coverflow view.
+
+The plist contains boolean values for the keys C<showIconPreview>,
+C<useRelativeDates>, and C<calculateAllSizes>; numbers for
+C<scrollPositionX>, C<scrollPositionY>, C<textSize>, C<iconSize>, and
+C<viewOptionsVersion> (typically 1); and a string, C<sortColumn>.
+
+There is also a C<columns> key containing the set of columns, their widths,
+visibility, column ordering, sort ordering.
+The only difference between C<lsvp> and C<lsvP> appears to be the
+format of the columns specification: an array or a dictionary.
+
+=item C<'lsvP'>
+
+A C<blob> containing a binary plist.
+Often occurs with C<lsvp>, but may have appeared in 10.7 or 10.8.
+
+=item C<'modD'> and C<'moDD'>
+
+C<dutc> timestamps; directories only.
+One or both may appear.
+Typically the same as the directory's modification date.
+Unknown purpose; appeared in 10.7 or 10.8.
+Possibly used to detect when C<logS> needs to be recalculated?
+
+=item C<'phyS'> or C<'ph1S'>
+
+C<comp>, directories only. This number is always a multiple of
+8192 and slightly larger than C<'logS'> / C<'lg1S'>, which always
+seems to be present if this is (though the reverse is not always true).
+Presumably it is the corresponding physical size (an integer number of
+8k-byte disk blocks). 
 
 =item C<'pict'>
 
@@ -264,6 +348,12 @@ Variable-length C<blob>, directories only.
 Despite the name, this contains not a PICT image but an Alias record
 (see I<Inside Macintosh: Files>) which resolves to the file containing
 the actual background image. See also C<'BKGD'>.
+
+=item C<'vSrn'>
+
+C<long>, attached to directories.
+Always appears to contain the value 1.
+Appeared in 10.7 or 10.8.
 
 =item C<'vstl'>
 
@@ -288,25 +378,25 @@ allocator's directory. It is 20 bytes long and contains five integers:
 
 =over
 
-=item 0
+=item
 
 The block number of the root node of the B-tree
 
-=item 1
+=item
 
 The number of levels of internal nodes (tree height minus one --- that
 is, for a tree containing only a single, leaf, node this will be zero)
 
-=item 2
+=item
 
 The number of records in the tree
 
-=item 3
+=item
 
 The number of nodes in the tree (tree nodes, not including this header
 block)
 
-=item 4
+=item
 
 Always 0x1000, probably the tree node page size 
 
