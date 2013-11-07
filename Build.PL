@@ -23,7 +23,7 @@ Module::Build->new
      recommends => {
          'Mac::Files' => 0,
          'Mac::Memory' => 0,
-         'Mac::PropertyList' => '1.38',
+         'Mac::PropertyList' => '1.39',
      },
      build_requires => {
 	'Test::More' => '0.61',

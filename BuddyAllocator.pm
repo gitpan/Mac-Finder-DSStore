@@ -26,7 +26,7 @@ use strict;
 use warnings;
 use Carp;
 
-our($VERSION) = '0.96';
+our($VERSION) = '1.00';
 
 # Debug logging. Uncomment these and all uses of them to activate.
 # It might be nice to make this more easily switchable.

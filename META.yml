@@ -17,10 +17,10 @@ name: Mac-Finder-DSStore
 provides:
   Mac::Finder::DSStore:
     file: DSStore.pm
-    version: 0.97
+    version: 1.00
   Mac::Finder::DSStore::BuddyAllocator:
     file: BuddyAllocator.pm
-    version: 0.96
+    version: 1.00
   Mac::Finder::DSStore::BuddyAllocator::Block:
     file: BuddyAllocator.pm
     version: 0
@@ -36,10 +36,10 @@ provides:
 recommends:
   Mac::Files: 0
   Mac::Memory: 0
-  Mac::PropertyList: 1.38
+  Mac::PropertyList: 1.39
 requires:
   Encode: 1.20
   perl: v5.6.1
 resources:
   license: http://dev.perl.org/licenses/
-version: 0.97
+version: 1.00
